@@ -1,0 +1,18 @@
+if [ "$1" == "install" ]; then
+	git clone https://aur.archlinux.org/$2.git
+	cd ./$2
+	makepkg -si
+	cd ..
+	kbuildsycoca5
+elif [ "$1" == "update" ]
+then
+	if [ "$2" == "all" ]; then
+		for d in ./*/
+		do (cd "$d"; if [[ `git status --porcelain` ]]; then echo "$d has updates. Installing." && git pull && makepkg -sicC; else echo "$d has no updates. Skipping."; fi)
+		done
+	else
+		cd ./"$2" && git pull && makepkg -sicC $$ cd ..
+	fi
+else
+	echo "Help text coming soon"
+fi
