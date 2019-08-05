@@ -1,24 +1,59 @@
+# Are we root? If so, exit 1
+if [ `id -u` == 0 ]; then
+	echo "Do not run aur-get as root. Exiting."
+	exit 1
+fi
+
 # Source the config file
 . ~/.aur-get
 
-if [ "$1" == "install" ]; then
-	cd $aurdir
+# Check to make sure the repository directory is set
+if [ -z "$aurdir" ]; then
+	echo "aurdir not defined. Please define in $HOME/.aur-get"
+	exit 1
+fi
+
+# Check if we're installing something from the AUR, and if so, do it
+if [ "$1" == "install" ] || [ "$1" == "-i" ]; then
+	cd "$aurdir"
 	git clone https://aur.archlinux.org/$2.git
-	cd ./$2
+	cd ./"$2"
 	makepkg -si
 	cd ..
+	
+	# Has the user defined a DE, and if so, does that DE have any post-install tasks to complete?
 	if [ "$desktopType" == "plasma" ]; then
 		kbuildsycoca5
 	fi
-elif [ "$1" == "update" ]
-then
+
+# Check if we're updating packages from the AUR, and if so, do it
+elif [ "$1" == "update" ] || [ "$1" == "-u" ]; then
+	
+	# Are we updating everything?
 	if [ "$2" == "all" ]; then
+		# Recursively enter each subdirectory and check if there is an update. If so, update the package. If not, skip it.
 		for d in ./*/
-		do (cd "$d"; if [[ `git pull` == "Already up to date." ]]; then echo "$d has no updates. Skipping."; else echo "$d has updates. Installing." && git pull && makepkg -sicC; fi)
+		do (cd "$d"; if [ `git pull` == "Already up to date." ]; then echo "$d has no updates. Skipping."; else echo "$d has updates. Installing." && git pull && makepkg -sicC; fi)
 		done
+	
+	#If we're not updating everything, then just enter the subdirectory of the package the user wants updated and update it
 	else
-		cd ./"$2" && git pull && makepkg -sicC $$ cd ..
+		cd ./$2
+		if [ `git pull` == "Already up to date." ]; then echo "$2 has no updates. Skipping."; else makepkg -sicC; fi
+		cd ..
 	fi
+
+# Check if we're removing something, and if so, pass it to pacman and delete the local copy
+elif [ "$1" == "remove" ] || [ "$1" == "-r" ]; then
+	sudo pacman -Rs "$2"
+	rm -rfv "$aurdir"/"$2"
+
+# If nothing else, just show the help text
 else
-	echo "Help text coming soon"
+	echo "usage: aur-get <operation> [...]"
+	echo "operations:"
+	echo "	aur-get	{install -i}	<package>"
+	echo "	aur-get	{update -u}	<package>"
+	echo "	aur-get	{update -u}	all"
+	echo "	aur-get	{remove -r}	<package>"
 fi
