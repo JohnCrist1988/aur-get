@@ -1,0 +1,5 @@
+# This defines the directory that aur-get will use to store AUR repos. Defaults to "~/aur".
+aurdir="$HOME/aur"
+
+# What type of desktop environment do you have? Valid values are "plasma". Used to rebuild icon cache after installation of a new package.
+desktopType="plasma"
