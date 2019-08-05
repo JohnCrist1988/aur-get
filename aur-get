@@ -1,9 +1,15 @@
+# Source the config file
+. ~/.aur-get
+
 if [ "$1" == "install" ]; then
+	cd $aurdir
 	git clone https://aur.archlinux.org/$2.git
 	cd ./$2
 	makepkg -si
 	cd ..
-	kbuildsycoca5
+	if [ "$desktopType" == "plasma" ]; then
+		kbuildsycoca5
+	fi
 elif [ "$1" == "update" ]
 then
 	if [ "$2" == "all" ]; then
