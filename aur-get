@@ -15,11 +15,7 @@ fi
 
 # Check if we're installing something from the AUR, and if so, do it
 if [ "$1" == "install" ] || [ "$1" == "-i" ]; then
-	cd "$aurdir"
-	git clone https://aur.archlinux.org/$2.git
-	cd ./"$2"
-	makepkg -si
-	cd ..
+	(cd "$aurdir" && git clone https://aur.archlinux.org/$2.git && cd ./"$2" && makepkg -si && cd ..)
 	
 	# Has the user defined a DE, and if so, does that DE have any post-install tasks to complete?
 	if [ "$desktopType" == "plasma" ]; then
