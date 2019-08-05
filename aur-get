@@ -32,15 +32,11 @@ elif [ "$1" == "update" ] || [ "$1" == "-u" ]; then
 	# Are we updating everything?
 	if [ "$2" == "all" ]; then
 		# Recursively enter each subdirectory and check if there is an update. If so, update the package. If not, skip it.
-		for d in ./*/
-		do (cd "$d"; if [ `git pull` == "Already up to date." ]; then echo "$d has no updates. Skipping."; else echo "$d has updates. Installing." && git pull && makepkg -sicC; fi)
-		done
+		(cd "$aurdir"; for d in ./*/; do (cd "$d"; if [ `git pull` == "Already up to date." ]; then echo "$d has no updates. Skipping."; else echo "$d has updates. Installing." && makepkg -sicC; fi);	done )
 	
 	#If we're not updating everything, then just enter the subdirectory of the package the user wants updated and update it
 	else
-		cd ./$2
-		if [ `git pull` == "Already up to date." ]; then echo "$2 has no updates. Skipping."; else makepkg -sicC; fi
-		cd ..
+		(cd "$aurdir"/"$2"; if [ `git pull` == "Already up to date." ];	then echo "$2 has no updates. Skipping."; else makepkg -sicC; fi )
 	fi
 
 # Check if we're removing something, and if so, pass it to pacman and delete the local copy
